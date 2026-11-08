@@ -22,7 +22,7 @@ npm run dev
 
 ```
 src/
-├── components/     # Reusable UI components
+├── components/     # Reusable UI components (create as needed)
 ├── routes/         # Page components
 │   └── Home/
 ├── store/          # State management (AppModel pattern)
