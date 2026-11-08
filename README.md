@@ -22,9 +22,10 @@ npm run dev
 
 ```
 src/
-├── components/     # Reusable UI components (create as needed)
+├── components/     # Reusable UI components (not created yet; add when needed)
 ├── routes/         # Page components
-│   └── Home/
+│   ├── Home/
+│   └── NotFound/   # Lazy-loaded 404 route
 ├── store/          # State management (AppModel pattern)
 ├── app.tsx         # Router setup
 ├── main.tsx        # Entry point
@@ -36,14 +37,25 @@ src/
 Uses a class-based AppModel with Preact Signals, passed via context:
 
 ```tsx
+// src/store/index.tsx: add domain stores as fields
+export class AppModel {
+  readonly user = new UserStore()
+  // Pass only the dependencies a store needs, not the whole AppModel
+  readonly cart = new CartStore(this.user)
+}
+
 // Access store in components
 import { useStore } from './store'
 
 function MyComponent() {
-  const store = useStore()
-  // store.user, store.someOtherDomain, etc.
+  const store = useStore() // throws if used outside <StoreProvider>
+  // store.user, store.cart, etc.
 }
 ```
+
+## Styling
+
+Tailwind CSS utilities only. Avoid adding a second styling system.
 
 ## Scripts
 
