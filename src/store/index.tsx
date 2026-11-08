@@ -2,20 +2,14 @@ import { createContext, type ComponentChildren } from 'preact'
 import { useContext, useState } from 'preact/hooks'
 
 export class AppModel {
-  // Add domain managers here as your app grows
-  // Example:
-  // #user: UserStore
+  // Add domain stores here as your app grows. Pass each store only the
+  // dependencies it needs, rather than the whole AppModel:
   //
-  // constructor() {
-  //   this.#user = new UserStore(this)
-  // }
-  //
-  // get user() {
-  //   return this.#user
-  // }
+  // readonly user = new UserStore()
+  // readonly cart = new CartStore(this.user)
 }
 
-const StoreContext = createContext<AppModel>(null!)
+const StoreContext = createContext<AppModel | null>(null)
 
 export function StoreProvider({ children }: { children: ComponentChildren }) {
   // Lazy initializer: the store is created once, not on every re-render
@@ -23,6 +17,10 @@ export function StoreProvider({ children }: { children: ComponentChildren }) {
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>
 }
 
-export function useStore() {
-  return useContext(StoreContext)
+export function useStore(): AppModel {
+  const store = useContext(StoreContext)
+  if (!store) {
+    throw new Error('useStore() must be used inside <StoreProvider>')
+  }
+  return store
 }

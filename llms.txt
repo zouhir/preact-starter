@@ -11,7 +11,7 @@
 ## Project Structure
 ```
 src/
-├── components/     # Reusable UI components (create as needed)
+├── components/     # Reusable UI components (not created yet; add when needed)
 ├── routes/         # Page components (one folder per route)
 ├── store/          # State management
 ├── app.tsx         # Router setup
@@ -22,13 +22,13 @@ src/
 ## Key Patterns
 
 ### Components
-- Place in `src/components/ComponentName/`
-- Use CSS modules for component-specific styles: `ComponentName.module.css`
-- Use Tailwind utilities for layout and common styles
+- Place in `src/components/ComponentName/index.tsx`
+- Style with Tailwind utility classes; don't add CSS modules or other styling systems
 
 ### Routes
-- Place in `src/routes/RouteName/index.tsx`
+- Place in `src/routes/RouteName/index.tsx` with a named export
 - Add route to `src/app.tsx` Router
+- Non-landing routes should be lazy-loaded with preact-iso's `lazy()` (see `NotFound` in `src/app.tsx`)
 
 ### State Management
 Uses class-based AppModel with Preact Signals passed via context:
@@ -36,9 +36,9 @@ Uses class-based AppModel with Preact Signals passed via context:
 ```tsx
 // src/store/index.tsx
 export class AppModel {
-  #user: UserStore
-  constructor() { this.#user = new UserStore() }
-  get user() { return this.#user }
+  readonly user = new UserStore()
+  // Pass only the dependencies a store needs, not the whole AppModel
+  readonly cart = new CartStore(this.user)
 }
 
 // Domain store with signals
@@ -48,7 +48,7 @@ export class UserStore {
   isLoading = signal(true)
 }
 
-// In components
+// In components (useStore throws if used outside <StoreProvider>)
 import { useStore } from '../store'
 function MyComponent() {
   const store = useStore()
@@ -58,12 +58,18 @@ function MyComponent() {
 
 ### Routing (preact-iso)
 ```tsx
-import { LocationProvider, Router, Route } from 'preact-iso'
-<Router>
-  <Route path="/" component={Home} />
-  <Route path="/about" component={About} />
-  <Route default component={NotFound} />
-</Router>
+import { LocationProvider, ErrorBoundary, Router, Route, lazy } from 'preact-iso'
+const About = lazy(() => import('./routes/About').then((m) => m.About))
+
+<LocationProvider>
+  <ErrorBoundary>
+    <Router>
+      <Route path="/" component={Home} />
+      <Route path="/about" component={About} />
+      <Route default component={NotFound} />
+    </Router>
+  </ErrorBoundary>
+</LocationProvider>
 ```
 
 ## Commands
